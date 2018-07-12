@@ -75,6 +75,9 @@ class SoapClient extends \SoapClient
      * @var string
      */
     private $lastResponse = '';
+    
+    /** @var array */
+    private $extraHttpHeaders = [];
 
     /**
      * Soap kernel.
@@ -117,6 +120,7 @@ class SoapClient extends \SoapClient
         $options['trace'] = false;
         // disable WSDL caching as we handle WSDL caching for remote URLs ourself
         $options['cache_wsdl'] = WSDL_CACHE_NONE;
+        
         parent::__construct($wsdlFile, $options);
     }
 
@@ -134,10 +138,10 @@ class SoapClient extends \SoapClient
         $soapVersion = $soapRequest->getVersion();
         $soapAction = $soapRequest->getAction();
         if (SOAP_1_1 == $soapVersion) {
-            $headers = array(
+            $headers = array_merge([
                 'Content-Type:' . $soapRequest->getContentType(),
                 'SOAPAction: "' . $soapAction . '"',
-            );
+            ], $this->getExtraHttpHeaders());
         } else {
             $headers = array(
                'Content-Type:' . $soapRequest->getContentType() . '; action="' . $soapAction . '"',
@@ -379,5 +383,15 @@ class SoapClient extends \SoapClient
         }
 
         return $cacheFileName;
+    }
+    
+    public function getExtraHttpHeaders() {
+        return $this->extraHttpHeaders;
+    }
+    
+    public function setExtraHttpHeaders($extraHttpHeaders) {
+        $this->extraHttpHeaders = $extraHttpHeaders;
+        
+        return $this;
     }
 }
